@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Reports made by the app (a sample is kept in docs/screenshots)
+reports/
+
+# The big raw WFP file - download it again if needed (see README)
+data/raw/
+
+# Editors and tools
+.vscode/
+.idea/
+.coverage
+htmlcov/

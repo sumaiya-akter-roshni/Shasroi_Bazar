@@ -1,0 +1,82 @@
+[
+  {
+    "product_id": "RICE",
+    "name": "Rice (coarse)",
+    "unit": "kg",
+    "category": "Grains",
+    "reference_price": null,
+    "perishable": false
+  },
+  {
+    "product_id": "ATTA",
+    "name": "Atta (wheat flour)",
+    "unit": "kg",
+    "category": "Grains",
+    "reference_price": null,
+    "perishable": false
+  },
+  {
+    "product_id": "DAL",
+    "name": "Masoor dal",
+    "unit": "kg",
+    "category": "Pulses",
+    "reference_price": null,
+    "perishable": false
+  },
+  {
+    "product_id": "OIL",
+    "name": "Soybean oil",
+    "unit": "litre",
+    "category": "Oil",
+    "reference_price": null,
+    "perishable": false
+  },
+  {
+    "product_id": "SUGAR",
+    "name": "Sugar",
+    "unit": "kg",
+    "category": "Grocery",
+    "reference_price": null,
+    "perishable": false
+  },
+  {
+    "product_id": "ONION",
+    "name": "Onion (imported)",
+    "unit": "kg",
+    "category": "Vegetables",
+    "reference_price": null,
+    "perishable": true
+  },
+  {
+    "product_id": "POTATO",
+    "name": "Potato",
+    "unit": "kg",
+    "category": "Vegetables",
+    "reference_price": null,
+    "perishable": true
+  },
+  {
+    "product_id": "GARLIC",
+    "name": "Garlic (imported)",
+    "unit": "kg",
+    "category": "Spices",
+    "reference_price": null,
+    "perishable": false
+  },
+  {
+    "product_id": "CHILLI",
+    "name": "Green chilli",
+    "unit": "kg",
+    "category": "Vegetables",
+    "reference_price": null,
+    "perishable": true
+  },
+  {
+    "product_id": "EGG",
+    "name": "Egg (brown)",
+    "unit": "piece",
+    "category": "Protein",
+    "reference_price": null,
+    "perishable": false
+  }
+]

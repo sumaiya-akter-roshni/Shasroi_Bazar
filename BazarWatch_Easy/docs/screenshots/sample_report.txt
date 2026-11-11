@@ -1,0 +1,62 @@
+BazarWatch BD - Price Report
+============================================================
+Made on      : 2026-11-07
+Dataset      : 759 prices from WFP
+My prices    : 3
+Recent window: last 365 days up to 2026-11-07
+
+PRODUCT SUMMARY
+------------------------------------------------------------
+Atta (wheat flour) - per kg
+   average Tk 54.70, min Tk 47.91, max Tk 64.00, latest Tk 62.50
+   cheapest market: Manikganj Sadar (Tk 55.02)
+Egg (brown) - per piece
+   average Tk 11.18, min Tk 8.75, max Tk 14.25, latest Tk 12.50
+   cheapest market: Manikganj Sadar (Tk 9.93)
+Garlic (imported) - per kg
+   average Tk 195.37, min Tk 129.30, max Tk 255.00, latest Tk 152.10
+   cheapest market: Narsingdi Sadar (Tk 170.57)
+Green chilli - per kg
+   average Tk 124.87, min Tk 38.50, max Tk 292.50, latest Tk 184.10
+   cheapest market: Manikganj Sadar (Tk 97.68)
+Masoor dal - per kg
+   average Tk 106.26, min Tk 87.50, max Tk 142.50, latest Tk 95.00
+   cheapest market: Narsingdi Sadar (Tk 89.64)
+Onion (imported) - per kg
+   average Tk 89.10, min Tk 52.64, max Tk 160.00, latest Tk 160.00
+   cheapest market: Narsingdi Sadar (Tk 65.42)
+Potato - per kg
+   average Tk 49.18, min Tk 19.00, max Tk 76.00, latest Tk 19.00
+   cheapest market: Narsingdi Sadar (Tk 21.55)
+Rice (coarse) - per kg
+   average Tk 52.25, min Tk 45.38, max Tk 61.00, latest Tk 54.00
+   cheapest market: Gazipur Sadar (Tk 49.65)
+Soybean oil - per litre
+   average Tk 174.05, min Tk 144.50, max Tk 194.50, latest Tk 192.50
+   cheapest market: Narsingdi Sadar (Tk 185.14)
+Sugar - per kg
+   average Tk 115.40, min Tk 92.50, max Tk 147.50, latest Tk 107.50
+   cheapest market: Manikganj Sadar (Tk 102.11)
+
+SPIKE AND WATCH PRICES (recent window)
+------------------------------------------------------------
+Watch  2025-12-15 Atta (wheat flour)     Dhaka Sadar      Tk 62.50 (z=2.14, no reference)
+Watch  2025-12-15 Onion (imported)       Gazipur Sadar    Tk 77.50 (z=-0.54, +29.2% vs reference)
+Watch  2026-02-15 Atta (wheat flour)     Dhaka Sadar      Tk 62.50 (z=2.05, no reference)
+Watch  2026-03-15 Soybean oil            Dhaka Sadar      Tk 188.94 (z=2.25, no reference)
+Watch  2026-03-15 Soybean oil            Gazipur Sadar    Tk 189.88 (z=2.37, no reference)
+Watch  2026-03-15 Soybean oil            Manikganj Sadar  Tk 188.62 (z=2.21, no reference)
+Watch  2026-03-15 Soybean oil            Narsingdi Sadar  Tk 187.00 (z=2.00, no reference)
+Watch  2026-04-15 Soybean oil            Dhaka Sadar      Tk 192.50 (z=2.21, no reference)
+Watch  2026-04-15 Soybean oil            Gazipur Sadar    Tk 193.28 (z=2.30, no reference)
+Watch  2026-04-15 Soybean oil            Manikganj Sadar  Tk 194.50 (z=2.43, no reference)
+Watch  2026-05-15 Soybean oil            Manikganj Sadar  Tk 194.50 (z=2.15, no reference)
+Spike  2026-11-07 Onion (imported)       Dhaka Sadar      Tk 160.00 (z=3.32, +166.7% vs reference)
+
+MY BASKET
+------------------------------------------------------------
+Split plan total: Tk 958.16
+Best single market: Narsingdi Sadar (Tk 965.50)
+Budget: Within budget - Tk 958.16 of Tk 1500.00 (64% used)
+
+Price data: World Food Programme (WFP), via HDX, licence CC BY-IGO.
