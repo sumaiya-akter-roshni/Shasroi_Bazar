@@ -12,6 +12,10 @@ import tkinter as tk
 from datetime import date
 from tkinter import messagebox, simpledialog, ttk
 
+# NEW CONTRIBUTION: CSV Export
+import csv
+from tkinter import filedialog
+
 import config
 import theme
 from manager import BazarManager
@@ -116,7 +120,8 @@ class BazarApp(tk.Tk):
     def __init__(self, manager: BazarManager | None = None):
         super().__init__()
         self.manager = manager or BazarManager()
-        self.product_labels = self.manager.product_labels()  # {label: product_id}
+        # {label: product_id}
+        self.product_labels = self.manager.product_labels()
 
         self.title("BazarWatch BD - Food Price Tracker")
         self.fit_to_screen()
@@ -138,12 +143,14 @@ class BazarApp(tk.Tk):
 
         self.build_add_tab()
         self.build_records_tab()
+        self.add_extra_record_features()
         self.build_stats_tab()
         self.build_basket_tab()
         self.refresh_all()
 
         if self.manager.problems:
-            messagebox.showwarning("Data problems", "\n".join(self.manager.problems))
+            messagebox.showwarning(
+                "Data problems", "\n".join(self.manager.problems))
 
     # ---------- helpers ----------
 
@@ -151,7 +158,8 @@ class BazarApp(tk.Tk):
         """Open the window at a good size, but never bigger than the screen."""
         factor = theme.screen_factor(self)
         width = min(int(WINDOW_WIDTH * factor), self.winfo_screenwidth() - 40)
-        height = min(int(WINDOW_HEIGHT * factor), self.winfo_screenheight() - TASKBAR_ROOM)
+        height = min(int(WINDOW_HEIGHT * factor),
+                     self.winfo_screenheight() - TASKBAR_ROOM)
         self.geometry(f"{width}x{height}+20+10")
         self.minsize(int(900 * factor), int(560 * factor))
 
@@ -191,15 +199,18 @@ class BazarApp(tk.Tk):
         self.basket_card = SummaryCard(row, "Basket (split plan)")
         self.budget_card = SummaryCard(row, "Weekly budget")
 
-        cards = (self.prices_card, self.alerts_card, self.basket_card, self.budget_card)
+        cards = (self.prices_card, self.alerts_card,
+                 self.basket_card, self.budget_card)
         for column, card in enumerate(cards):
-            card.grid(row=0, column=column, sticky="nsew", padx=(0 if column == 0 else 12, 0))
+            card.grid(row=0, column=column, sticky="nsew",
+                      padx=(0 if column == 0 else 12, 0))
             row.columnconfigure(column, weight=1, uniform="cards")
 
     def refresh_summary(self) -> None:
         manager = self.manager
         dataset, mine = len(manager.dataset_records), len(manager.my_records)
-        self.prices_card.show(str(dataset + mine), f"{dataset} from WFP + {mine} yours")
+        self.prices_card.show(str(dataset + mine),
+                              f"{dataset} from WFP + {mine} yours")
 
         counts = manager.alert_counts()
         self.alerts_card.show(
@@ -216,7 +227,8 @@ class BazarApp(tk.Tk):
 
         status = plan["status"][0]
         if status == "No budget":
-            self.budget_card.show("-", "Set a weekly budget in My Basket", theme.MUTED)
+            self.budget_card.show(
+                "-", "Set a weekly budget in My Basket", theme.MUTED)
         else:
             self.budget_card.show(f"{plan['budget_percent']:.0f}% used",
                                   f"{status} (Tk {manager.basket['budget']:g})",
@@ -237,33 +249,42 @@ class BazarApp(tk.Tk):
                   style="Muted.TLabel").grid(row=1, column=0, columnspan=2, sticky="w",
                                              pady=(2, 16))
 
-        ttk.Label(form, text="Product").grid(row=2, column=0, sticky="w", pady=6)
+        ttk.Label(form, text="Product").grid(
+            row=2, column=0, sticky="w", pady=6)
         self.add_product = ttk.Combobox(form, values=list(self.product_labels),
                                         state="readonly", width=34)
-        self.add_product.grid(row=2, column=1, sticky="w", padx=(16, 0), pady=6)
-        self.add_product.bind("<<ComboboxSelected>>", lambda event: self.show_product_info())
+        self.add_product.grid(row=2, column=1, sticky="w",
+                              padx=(16, 0), pady=6)
+        self.add_product.bind("<<ComboboxSelected>>",
+                              lambda event: self.show_product_info())
 
-        ttk.Label(form, text="Market").grid(row=3, column=0, sticky="w", pady=6)
-        self.add_market = ttk.Combobox(form, values=config.MARKETS, state="readonly", width=34)
+        ttk.Label(form, text="Market").grid(
+            row=3, column=0, sticky="w", pady=6)
+        self.add_market = ttk.Combobox(
+            form, values=config.MARKETS, state="readonly", width=34)
         self.add_market.grid(row=3, column=1, sticky="w", padx=(16, 0), pady=6)
 
-        ttk.Label(form, text="Date (YYYY-MM-DD)").grid(row=4, column=0, sticky="w", pady=6)
+        ttk.Label(form, text="Date (YYYY-MM-DD)").grid(row=4,
+                                                       column=0, sticky="w", pady=6)
         self.add_date = ttk.Entry(form, width=20)
         self.add_date.grid(row=4, column=1, sticky="w", padx=(16, 0), pady=6)
 
-        ttk.Label(form, text="Price per unit (Tk)").grid(row=5, column=0, sticky="w", pady=6)
+        ttk.Label(form, text="Price per unit (Tk)").grid(
+            row=5, column=0, sticky="w", pady=6)
         self.add_price = ttk.Entry(form, width=20)
         self.add_price.grid(row=5, column=1, sticky="w", padx=(16, 0), pady=6)
         self.add_price.bind("<Return>", lambda event: self.save_price())
 
         self.product_info = ttk.Label(form, text="", style="Muted.TLabel")
-        self.product_info.grid(row=6, column=0, columnspan=2, sticky="w", pady=(10, 16))
+        self.product_info.grid(
+            row=6, column=0, columnspan=2, sticky="w", pady=(10, 16))
 
         buttons = ttk.Frame(form)
         buttons.grid(row=7, column=0, columnspan=2, sticky="w")
         ttk.Button(buttons, text="Save price", style="Accent.TButton",
                    command=self.save_price).pack(side="left")
-        ttk.Button(buttons, text="Clear", command=self.clear_add_form).pack(side="left", padx=8)
+        ttk.Button(buttons, text="Clear", command=self.clear_add_form).pack(
+            side="left", padx=8)
 
         self.build_result_panel(tab)
         self.clear_add_form()
@@ -306,7 +327,8 @@ class BazarApp(tk.Tk):
         self.add_date.insert(0, date.today().isoformat())
         self.add_price.delete(0, "end")
         self.result_label.config(text="", bg=theme.SOFT)
-        self.result_details.config(text="Save a price to see if it is normal or too high.")
+        self.result_details.config(
+            text="Save a price to see if it is normal or too high.")
         self.show_product_info()
 
     def show_product_info(self) -> None:
@@ -318,7 +340,7 @@ class BazarApp(tk.Tk):
         reference_text = f"Tk {reference:.2f}" if reference else "not set"
         kind = "perishable" if product.is_perishable() else "normal"
         self.product_info.config(text=f"Unit: {product.unit}   |   "
-                                      f"Reference price: {reference_text}   |   Type: {kind}")
+                                 f"Reference price: {reference_text}   |   Type: {kind}")
 
     def save_price(self) -> None:
         product_id = self.product_labels.get(self.add_product.get())
@@ -366,28 +388,34 @@ class BazarApp(tk.Tk):
         ttk.Label(top, text="Search").pack(side="left")
         self.search_entry = ttk.Entry(top, width=26)
         self.search_entry.pack(side="left", padx=(8, 18))
-        self.search_entry.bind("<Return>", lambda event: self.refresh_records())
+        self.search_entry.bind(
+            "<Return>", lambda event: self.refresh_records())
 
         ttk.Label(top, text="Product").pack(side="left")
         self.filter_product = ttk.Combobox(
             top, values=[ALL_PRODUCTS, *self.product_labels], state="readonly", width=28)
         self.filter_product.current(0)
         self.filter_product.pack(side="left", padx=(8, 18))
-        self.filter_product.bind("<<ComboboxSelected>>", lambda event: self.refresh_records())
+        self.filter_product.bind(
+            "<<ComboboxSelected>>", lambda event: self.refresh_records())
 
         ttk.Button(top, text="Search", style="Accent.TButton",
                    command=self.refresh_records).pack(side="left")
-        ttk.Button(top, text="Show all", command=self.show_all_records).pack(side="left", padx=8)
+        ttk.Button(top, text="Show all", command=self.show_all_records).pack(
+            side="left", padx=8)
 
         self.records_table = make_table(tab, [
-            ("id", "ID", 70), ("product", "Product", 160), ("market", "Market", 130),
-            ("date", "Date", 90), ("price", "Price (Tk)", 80), ("source", "Source", 70),
+            ("id", "ID", 70), ("product", "Product",
+                               160), ("market", "Market", 130),
+            ("date", "Date", 90), ("price",
+                                   "Price (Tk)", 80), ("source", "Source", 70),
             ("level", "Level", 70), ("z", "z", 60), ("pct", "% vs ref", 80),
         ], height=14)
 
         bottom = ttk.Frame(tab)
         bottom.pack(fill="x", pady=(10, 0))
-        ttk.Button(bottom, text="Edit selected", command=self.edit_record).pack(side="left")
+        ttk.Button(bottom, text="Edit selected",
+                   command=self.edit_record).pack(side="left")
         ttk.Button(bottom, text="Delete selected", style="Danger.TButton",
                    command=self.delete_record).pack(side="left", padx=8)
         self.records_count = ttk.Label(bottom, text="", style="Muted.TLabel")
@@ -402,7 +430,8 @@ class BazarApp(tk.Tk):
         self.refresh_records()
 
     def refresh_records(self) -> None:
-        product_id = self.product_labels.get(self.filter_product.get())  # None = all
+        product_id = self.product_labels.get(
+            self.filter_product.get())  # None = all
         records = self.manager.search(self.search_entry.get(), product_id)
         alerts = self.manager.all_alerts()
 
@@ -454,7 +483,8 @@ class BazarApp(tk.Tk):
         tab = self.stats_tab
         top = ttk.Frame(tab)
         top.pack(fill="x")
-        ttk.Label(top, text="Statistics per product", style="Section.TLabel").pack(side="left")
+        ttk.Label(top, text="Statistics per product",
+                  style="Section.TLabel").pack(side="left")
         ttk.Label(top, text=f"cheapest market = last {config.RECENT_DAYS} days of data",
                   style="Muted.TLabel").pack(side="left", padx=10)
         ttk.Button(top, text="Save report (.txt)", style="Accent.TButton",
@@ -463,16 +493,19 @@ class BazarApp(tk.Tk):
                    command=self.set_reference_price).pack(side="right", padx=8)
 
         self.stats_table = make_table(tab, [
-            ("product", "Product", 150), ("unit", "Unit", 50), ("count", "Count", 50),
+            ("product", "Product", 150), ("unit",
+                                          "Unit", 50), ("count", "Count", 50),
             ("mean", "Mean", 65), ("median", "Median", 65), ("min", "Min", 60),
-            ("max", "Max", 60), ("std", "Std dev", 65), ("reference", "Reference", 75),
+            ("max", "Max", 60), ("std", "Std dev",
+                                 65), ("reference", "Reference", 75),
             ("cheapest", "Cheapest market", 130), ("cheapest_avg", "Avg there", 75),
         ], height=10)
 
         ttk.Label(tab, text="Spike and Watch prices (newest first)",
                   style="Section.TLabel").pack(anchor="w", pady=(14, 0))
         self.alerts_table = make_table(tab, [
-            ("level", "Level", 70), ("date", "Date", 90), ("product", "Product", 160),
+            ("level", "Level", 70), ("date", "Date",
+                                     90), ("product", "Product", 160),
             ("market", "Market", 130), ("price", "Price (Tk)", 80), ("z", "z", 60),
             ("pct", "% vs ref", 80), ("source", "Source", 70),
         ], height=4)
@@ -488,18 +521,21 @@ class BazarApp(tk.Tk):
                 numbers = [row["count"], money(row["mean"]), money(row["median"]),
                            money(row["min"]), money(row["max"]), money(row["std"])]
             add_row(self.stats_table, index, row_id=product.product_id, values=(
-                product.name, product.unit, *numbers, money(product.reference_price),
-                market or "no recent data", money(average),
-            ))
+                product.name, product.unit, *
+                    numbers, money(product.reference_price),
+                    market or "no recent data", money(average),
+                    ))
 
         clear_table(self.alerts_table)
         alerts = self.manager.all_alerts()
-        records = sorted(self.manager.all_records(), key=lambda r: r.date, reverse=True)
+        records = sorted(self.manager.all_records(),
+                         key=lambda r: r.date, reverse=True)
         unusual = [r for r in records if alerts[r.record_id][0] != "Normal"]
         for index, record in enumerate(unusual):
             level, z, pct = alerts[record.record_id]
             add_row(self.alerts_table, index, row_id=record.record_id, level=level, values=(
-                level, record.date, self.manager.product_name(record.product_id),
+                level, record.date, self.manager.product_name(
+                    record.product_id),
                 record.market, f"{record.price:.2f}",
                 f"{z:.2f}" if z is not None else "-",
                 f"{pct:+.1f}%" if pct is not None else "-",
@@ -509,7 +545,8 @@ class BazarApp(tk.Tk):
     def set_reference_price(self) -> None:
         product_id = selected_id(self.stats_table)
         if product_id is None:
-            messagebox.showinfo("Reference price", "Please select a product first.")
+            messagebox.showinfo("Reference price",
+                                "Please select a product first.")
             return
         product = self.manager.products[product_id]
         current = f"{product.reference_price:.2f}" if product.reference_price else ""
@@ -534,7 +571,8 @@ class BazarApp(tk.Tk):
         except BazarError as error:
             messagebox.showerror("Could not save", str(error))
             return
-        messagebox.showinfo("Report saved", f"The report was saved to:\n{path}")
+        messagebox.showinfo(
+            "Report saved", f"The report was saved to:\n{path}")
 
     # ================= Tab 4: My Basket =================
 
@@ -568,7 +606,8 @@ class BazarApp(tk.Tk):
                   style="Section.TLabel").pack(anchor="w")
         self.basket_table = make_table(tables, [
             ("product", "Product", 160), ("quantity", "Quantity", 70),
-            ("market", "Cheapest market", 140), ("price", "Price", 70), ("cost", "Cost", 80),
+            ("market", "Cheapest market", 140), ("price",
+                                                 "Price", 70), ("cost", "Cost", 80),
         ], height=6)
         ttk.Label(tables, text="Whole basket from one market",
                   style="Section.TLabel").pack(anchor="w", pady=(14, 0))
@@ -583,7 +622,8 @@ class BazarApp(tk.Tk):
         panel = soft_panel(tab)
         panel.grid(row=1, column=1, sticky="nsew", padx=(20, 0), pady=(14, 0))
 
-        wrap = int(360 * theme.screen_factor(self))  # long lines go onto the next line
+        # long lines go onto the next line
+        wrap = int(360 * theme.screen_factor(self))
         panel_title(panel, "Your plan")
         self.basket_summary = tk.Label(panel, text="", bg=theme.SOFT, fg=theme.TEXT,
                                        font=theme.NORMAL, justify="left", wraplength=wrap)
@@ -597,7 +637,8 @@ class BazarApp(tk.Tk):
                  font=theme.NORMAL).pack(side="left")
         self.budget_entry = ttk.Entry(budget_row, width=12)
         self.budget_entry.pack(side="left", padx=8)
-        ttk.Button(budget_row, text="Save budget", command=self.save_budget).pack(side="left")
+        ttk.Button(budget_row, text="Save budget",
+                   command=self.save_budget).pack(side="left")
 
         self.budget_bar = ttk.Progressbar(panel, maximum=100,
                                           style=theme.BAR_STYLES["Within budget"])
@@ -618,13 +659,15 @@ class BazarApp(tk.Tk):
             name = self.manager.product_name(product_id)
             if product_id in plan["split_plan"]:
                 market, price, cost = plan["split_plan"][product_id]
-                values = (name, f"{quantity:g}", market, money(price), money(cost))
+                values = (name, f"{quantity:g}", market,
+                          money(price), money(cost))
             else:
                 values = (name, f"{quantity:g}", "no recent price", "-", "-")
             add_row(self.basket_table, index, values, row_id=product_id)
 
         clear_table(self.totals_table)
-        totals = sorted(plan["totals"].items(), key=lambda item: item[1])  # cheapest first
+        totals = sorted(plan["totals"].items(),
+                        key=lambda item: item[1])  # cheapest first
         for index, (market, total) in enumerate(totals):
             add_row(self.totals_table, index, (market, money(total)))
 
@@ -638,19 +681,23 @@ class BazarApp(tk.Tk):
         else:
             lines.append("No single market has a recent price for every item.")
         if plan["unpriced"]:
-            names = ", ".join(self.manager.product_name(pid) for pid in plan["unpriced"])
-            lines.append(f"No recent price for: {names} (left out of the totals)")
+            names = ", ".join(self.manager.product_name(pid)
+                              for pid in plan["unpriced"])
+            lines.append(
+                f"No recent price for: {names} (left out of the totals)")
         self.basket_summary.config(text="\n".join(lines))
 
         status, message = plan["status"]
         self.budget_bar.config(value=min(plan["budget_percent"], 100),
                                style=theme.BAR_STYLES[status])
-        self.budget_label.config(text=f"{status}\n{message}", fg=theme.STATUS_COLOURS[status])
+        self.budget_label.config(
+            text=f"{status}\n{message}", fg=theme.STATUS_COLOURS[status])
 
     def add_basket_item(self) -> None:
         product_id = self.product_labels.get(self.basket_product.get())
         try:
-            self.manager.set_basket_item(product_id, self.basket_quantity.get())
+            self.manager.set_basket_item(
+                product_id, self.basket_quantity.get())
         except BazarError as error:
             messagebox.showerror("Could not add", str(error))
             return
@@ -659,7 +706,8 @@ class BazarApp(tk.Tk):
     def remove_basket_item(self) -> None:
         product_id = selected_id(self.basket_table)
         if product_id is None:
-            messagebox.showinfo("Remove", "Please select an item in the table first.")
+            messagebox.showinfo(
+                "Remove", "Please select an item in the table first.")
             return
         try:
             self.manager.remove_basket_item(product_id)
@@ -675,6 +723,205 @@ class BazarApp(tk.Tk):
             messagebox.showerror("Could not save", str(error))
             return
         self.refresh_all()
+
+    # ==========================================
+    # NEW CONTRIBUTIONS
+    # Market Filter, Alert Filter, CSV Export
+    # ==========================================
+
+    def add_extra_record_features(self):
+        """Add extra record filtering and export features."""
+
+        filter_bar = ttk.Frame(self.records_tab)
+
+        # Place the new filter row before the existing records table
+        filter_bar.pack(
+            fill="x",
+            pady=(8, 4),
+            before=self.records_table.master
+        )
+
+        # Market Filter
+        ttk.Label(filter_bar, text="Market:").pack(side="left")
+
+        self.extra_market_filter = ttk.Combobox(
+            filter_bar,
+            values=["All Markets", *config.MARKETS],
+            state="readonly",
+            width=17
+        )
+
+        self.extra_market_filter.current(0)
+        self.extra_market_filter.pack(side="left", padx=6)
+
+        # Alert Filter
+        ttk.Label(filter_bar, text="Alert:").pack(
+            side="left", padx=(10, 0)
+        )
+
+        self.extra_alert_filter = ttk.Combobox(
+            filter_bar,
+            values=["All Levels", *config.ALERT_LEVELS],
+            state="readonly",
+            width=13
+        )
+
+        self.extra_alert_filter.current(0)
+        self.extra_alert_filter.pack(side="left", padx=6)
+
+        # Apply Filters Button
+        ttk.Button(
+            filter_bar,
+            text="Apply Filters",
+            command=self.apply_extra_record_filters
+        ).pack(side="left", padx=5)
+
+        # Reset Filters Button
+        ttk.Button(
+            filter_bar,
+            text="Reset Filters",
+            command=self.reset_extra_record_filters
+        ).pack(side="left", padx=5)
+
+        # Export CSV Button
+        ttk.Button(
+            filter_bar,
+            text="Export CSV",
+            style="Accent.TButton",
+            command=self.export_visible_records_csv
+        ).pack(side="right", padx=5)
+
+        # Apply filters when dropdown selections change
+        self.extra_market_filter.bind(
+            "<<ComboboxSelected>>",
+            lambda event: self.apply_extra_record_filters()
+        )
+
+        self.extra_alert_filter.bind(
+            "<<ComboboxSelected>>",
+            lambda event: self.apply_extra_record_filters()
+        )
+
+        # Apply extra filters after the original search events
+        self.filter_product.bind(
+            "<<ComboboxSelected>>",
+            lambda event: self.apply_extra_record_filters(),
+            add="+"
+        )
+
+        self.search_entry.bind(
+            "<Return>",
+            lambda event: self.apply_extra_record_filters(),
+            add="+"
+        )
+
+    def apply_extra_record_filters(self):
+        """Filter records using market and alert level."""
+
+        # Keep original record loading logic
+        self.refresh_records()
+
+        selected_market = self.extra_market_filter.get()
+        selected_level = self.extra_alert_filter.get()
+
+        for record_id in self.records_table.get_children():
+
+            values = self.records_table.item(
+                record_id, "values"
+            )
+
+            record_market = values[2]
+            record_level = values[6]
+
+            market_match = (
+                selected_market == "All Markets"
+                or record_market == selected_market
+            )
+
+            level_match = (
+                selected_level == "All Levels"
+                or record_level == selected_level
+            )
+
+            if not (market_match and level_match):
+                self.records_table.delete(record_id)
+
+        self.records_count.config(
+            text=f"{len(self.records_table.get_children())} records shown"
+        )
+
+    def reset_extra_record_filters(self):
+        """Reset additional filters."""
+
+        self.extra_market_filter.current(0)
+        self.extra_alert_filter.current(0)
+
+        # Use original Show All functionality
+        self.show_all_records()
+
+    def export_visible_records_csv(self):
+        """Export currently visible records to CSV."""
+
+        visible_records = self.records_table.get_children()
+
+        if not visible_records:
+            messagebox.showinfo(
+                "Export CSV",
+                "No records available to export."
+            )
+            return
+
+        file_path = filedialog.asksaveasfilename(
+            title="Export Records",
+            defaultextension=".csv",
+            initialfile="bazarwatch_records.csv",
+            filetypes=[
+                ("CSV Files", "*.csv"),
+                ("All Files", "*.*")
+            ]
+        )
+
+        if not file_path:
+            return
+
+        try:
+            with open(
+                file_path,
+                "w",
+                newline="",
+                encoding="utf-8-sig"
+            ) as csv_file:
+
+                writer = csv.writer(csv_file)
+
+                # Write column headings
+                writer.writerow([
+                    self.records_table.heading(
+                        column, "text"
+                    )
+                    for column in self.records_table["columns"]
+                ])
+
+                # Write visible records
+                for record_id in visible_records:
+
+                    values = self.records_table.item(
+                        record_id, "values"
+                    )
+
+                    writer.writerow(values)
+
+            messagebox.showinfo(
+                "Export Successful",
+                f"Records exported successfully!\n{file_path}"
+            )
+
+        except (OSError, csv.Error) as error:
+
+            messagebox.showerror(
+                "Export Failed",
+                str(error)
+            )
 
 
 class EditDialog(tk.Toplevel):
@@ -695,8 +942,10 @@ class EditDialog(tk.Toplevel):
                   style="Section.TLabel").grid(row=0, column=0, columnspan=2, sticky="w",
                                                pady=(0, 10))
 
-        ttk.Label(frame, text="Market").grid(row=1, column=0, sticky="w", pady=5)
-        self.market = ttk.Combobox(frame, values=config.MARKETS, state="readonly", width=22)
+        ttk.Label(frame, text="Market").grid(
+            row=1, column=0, sticky="w", pady=5)
+        self.market = ttk.Combobox(
+            frame, values=config.MARKETS, state="readonly", width=22)
         self.market.set(record.market)
         self.market.grid(row=1, column=1, padx=(12, 0), pady=5)
 
@@ -705,14 +954,16 @@ class EditDialog(tk.Toplevel):
         self.date.insert(0, record.date)
         self.date.grid(row=2, column=1, padx=(12, 0), pady=5)
 
-        ttk.Label(frame, text="Price (Tk)").grid(row=3, column=0, sticky="w", pady=5)
+        ttk.Label(frame, text="Price (Tk)").grid(
+            row=3, column=0, sticky="w", pady=5)
         self.price = ttk.Entry(frame, width=25)
         self.price.insert(0, f"{record.price:g}")
         self.price.grid(row=3, column=1, padx=(12, 0), pady=5)
 
         buttons = ttk.Frame(frame)
         buttons.grid(row=4, column=0, columnspan=2, sticky="e", pady=(14, 0))
-        ttk.Button(buttons, text="Cancel", command=self.destroy).pack(side="right")
+        ttk.Button(buttons, text="Cancel",
+                   command=self.destroy).pack(side="right")
         ttk.Button(buttons, text="Save", style="Accent.TButton",
                    command=self.save).pack(side="right", padx=8)
 
