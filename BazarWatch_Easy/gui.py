@@ -10,6 +10,7 @@ Colours and fonts come from theme.py.
 
 import tkinter as tk
 from datetime import date
+from datetime import timedelta
 from tkinter import messagebox, simpledialog, ttk
 
 # NEW CONTRIBUTION: CSV Export
@@ -142,6 +143,7 @@ class BazarApp(tk.Tk):
         notebook.add(self.basket_tab, text="My Basket")
 
         self.build_add_tab()
+        self.add_price_tab_features()
         self.build_records_tab()
         self.add_extra_record_features()
         self.build_stats_tab()
@@ -242,12 +244,13 @@ class BazarApp(tk.Tk):
         tab.rowconfigure(0, weight=1)
 
         form = ttk.Frame(tab)
+        self.add_form = form
         form.grid(row=0, column=0, sticky="nw")
         ttk.Label(form, text="Add a price you paid", style="Title.TLabel").grid(
             row=0, column=0, columnspan=2, sticky="w")
         ttk.Label(form, text="Choose the product and the market, then type the price.",
                   style="Muted.TLabel").grid(row=1, column=0, columnspan=2, sticky="w",
-                                             pady=(2, 16))
+                                             pady=(2, 8))
 
         ttk.Label(form, text="Product").grid(
             row=2, column=0, sticky="w", pady=6)
@@ -277,7 +280,7 @@ class BazarApp(tk.Tk):
 
         self.product_info = ttk.Label(form, text="", style="Muted.TLabel")
         self.product_info.grid(
-            row=6, column=0, columnspan=2, sticky="w", pady=(10, 16))
+            row=6, column=0, columnspan=2, sticky="w", pady=(4, 6))
 
         buttons = ttk.Frame(form)
         buttons.grid(row=7, column=0, columnspan=2, sticky="w")
@@ -331,6 +334,9 @@ class BazarApp(tk.Tk):
             text="Save a price to see if it is normal or too high.")
         self.show_product_info()
 
+        if hasattr(self, "extra_history_table"):
+            self.refresh_price_history()
+
     def show_product_info(self) -> None:
         product_id = self.product_labels.get(self.add_product.get())
         if product_id is None:
@@ -354,6 +360,8 @@ class BazarApp(tk.Tk):
         self.show_result(record)
         self.add_price.delete(0, "end")
         self.refresh_all()
+
+        self.refresh_price_history()
 
     def show_result(self, record) -> None:
         """Show the alert level of a saved price, with the numbers behind it."""
@@ -921,6 +929,164 @@ class BazarApp(tk.Tk):
             messagebox.showerror(
                 "Export Failed",
                 str(error)
+            )
+
+    # ==========================================
+    # NEW CONTRIBUTION: ADD PRICE TAB FEATURES
+    # ==========================================
+
+    def add_price_tab_features(self):
+        """Compact price tools with all five history records visible."""
+
+        tools_panel = ttk.LabelFrame(
+            self.add_form,
+            text="Price Insights & Quick Tools",
+            padding=5
+        )
+
+        tools_panel.grid(
+            row=8,
+            column=0,
+            columnspan=2,
+            sticky="ew",
+            pady=(2, 0)
+        )
+
+        # Quick Date Selection
+        date_frame = ttk.LabelFrame(
+            tools_panel,
+            text="Quick Date Selection",
+            padding=4
+        )
+        date_frame.pack(fill="x", pady=(0, 5))
+
+        date_buttons = ttk.Frame(date_frame)
+        date_buttons.pack(fill="x")
+
+        ttk.Button(
+            date_buttons,
+            text="Today",
+            command=lambda: self.set_quick_date(date.today())
+        ).pack(side="left", expand=True, fill="x", padx=2)
+
+        ttk.Button(
+            date_buttons,
+            text="Yesterday",
+            command=lambda: self.set_quick_date(
+                date.today() - timedelta(days=1)
+            )
+        ).pack(side="left", expand=True, fill="x", padx=2)
+
+        # Recent Price History
+        history_frame = ttk.LabelFrame(
+            tools_panel,
+            text="Recent Price History - Last 5 Records",
+            padding=2
+        )
+        history_frame.pack(fill="x", expand=True)
+
+        self.extra_history_table = ttk.Treeview(
+            history_frame,
+            columns=("date", "market", "price"),
+            show="headings",
+            height=5
+        )
+
+        self.extra_history_table.heading(
+            "date", text="Date"
+        )
+        self.extra_history_table.heading(
+            "market", text="Market"
+        )
+        self.extra_history_table.heading(
+            "price", text="Price (Tk)"
+        )
+
+        self.extra_history_table.column(
+            "date", width=90, anchor="center"
+        )
+        self.extra_history_table.column(
+            "market", width=115, anchor="w"
+        )
+        self.extra_history_table.column(
+            "price", width=85, anchor="e"
+        )
+
+        self.extra_history_table.pack(
+            fill="x",
+            expand=True
+        )
+
+        ttk.Button(
+            history_frame,
+            text="Refresh History",
+            command=self.refresh_price_history
+        ).pack(anchor="e", pady=(3, 0))
+
+        # Update history when product changes
+        self.add_product.bind(
+            "<<ComboboxSelected>>",
+            lambda event: (
+                self.show_product_info(),
+                self.refresh_price_history()
+            ),
+            add="+"
+        )
+
+        self.refresh_price_history()
+
+    # ==========================================
+    # NEW CONTRIBUTION: ADD PRICE SUPPORT METHODS
+    # ==========================================
+
+    def set_quick_date(self, selected_date):
+        """Update date field using quick date buttons."""
+
+        self.add_date.configure(state="normal")
+
+        self.add_date.delete(0, "end")
+        self.add_date.insert(0, selected_date.strftime("%Y-%m-%d"))
+
+        self.add_date.update_idletasks()
+        self.add_date.focus_set()
+
+    # ==========================================
+    # RECENT PRICE HISTORY
+    # ==========================================
+
+    def refresh_price_history(self):
+        """Display latest five records for selected product."""
+
+        for item in self.extra_history_table.get_children():
+            self.extra_history_table.delete(item)
+
+        product_id = self.product_labels.get(
+            self.add_product.get()
+        )
+
+        if product_id is None:
+            return
+
+        records = [
+            record
+            for record in self.manager.all_records()
+            if record.product_id == product_id
+        ]
+
+        records.sort(
+            key=lambda record: record.date,
+            reverse=True
+        )
+
+        for record in records[:5]:
+            self.extra_history_table.insert(
+                "",
+                "end",
+                values=(
+                    record.date,
+                    record.market,
+                    f"{record.price:.2f}"
+                )
             )
 
 

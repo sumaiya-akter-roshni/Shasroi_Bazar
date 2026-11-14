@@ -12,7 +12,7 @@
     "name": "Atta (wheat flour)",
     "unit": "kg",
     "category": "Grains",
-    "reference_price": null,
+    "reference_price": 70.0,
     "perishable": false
   },
   {
