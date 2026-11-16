@@ -10,7 +10,7 @@
 
 You write down what you paid at the bazar. The app tells you whether the price is **Normal**, worth a **Watch**, or a **Spike**, which market is cheapest, and whether your weekly shopping fits your budget.
 
-Made for the **CSC 4162 Programming in Python** mid-term project.
+Made for  the **CSC 4162 Programming in Python** mid-term project.
 
 ---
 
