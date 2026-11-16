@@ -1,13 +1,3 @@
-"""The Tkinter window of BazarWatch BD.
-
-At the top there is a green header and four summary cards. Below them are
-four tabs: Add Price, Records, Statistics and My Basket.
-
-Every button calls the manager. If the manager raises a BazarError
-(for example a wrong price), we show its message and the app keeps running.
-Colours and fonts come from theme.py.
-"""
-
 import tkinter as tk
 from datetime import date
 from tkinter import messagebox, simpledialog, ttk
@@ -18,21 +8,15 @@ from manager import BazarManager
 from validators import BazarError
 
 ALL_PRODUCTS = "All products"
-WINDOW_WIDTH = 1180   # on a normal screen; bigger on screens with display scaling
+WINDOW_WIDTH = 1180
 WINDOW_HEIGHT = 760
-TASKBAR_ROOM = 100    # keep the window above the Windows taskbar
+TASKBAR_ROOM = 100
 ALERT_MEANINGS = (("Spike", "both rules are true"),
                   ("Watch", "one rule is true"),
                   ("Normal", "no rule is true"))
 
 
-# ---------- small helpers ----------
-
 def make_table(parent, columns: list, height: int = 10) -> ttk.Treeview:
-    """Create a table (Treeview) with a scrollbar.
-
-    columns is a list of (key, heading, width).
-    """
     frame = ttk.Frame(parent)
     frame.pack(fill="both", expand=True, pady=(6, 0))
 
@@ -48,7 +32,6 @@ def make_table(parent, columns: list, height: int = 10) -> ttk.Treeview:
     table.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
 
-    # Text colour for each alert level, and a light background on every second row
     for level, colour in theme.LEVEL_COLOURS.items():
         table.tag_configure(level, foreground=colour)
     table.tag_configure("odd", background=theme.ROW_ALT)
@@ -57,7 +40,6 @@ def make_table(parent, columns: list, height: int = 10) -> ttk.Treeview:
 
 def add_row(table: ttk.Treeview, index: int, values: tuple,
             row_id: str | None = None, level: str = "Normal") -> None:
-    """Add one row to a table. Odd rows get a light background (zebra stripes)."""
     stripe = "odd" if index % 2 else "even"
     table.insert("", "end", iid=row_id, values=values, tags=(level, stripe))
 
@@ -68,7 +50,6 @@ def clear_table(table: ttk.Treeview) -> None:
 
 
 def selected_id(table: ttk.Treeview) -> str | None:
-    """The ID of the chosen row (we use the record or product ID as the row ID)."""
     selection = table.selection()
     return selection[0] if selection else None
 
@@ -78,7 +59,6 @@ def money(value) -> str:
 
 
 def soft_panel(parent) -> tk.Frame:
-    """A light box with a thin border, used on the right side of some tabs."""
     return tk.Frame(parent, bg=theme.SOFT, highlightthickness=1,
                     highlightbackground=theme.BORDER, padx=20, pady=16)
 
@@ -93,8 +73,6 @@ def panel_line(parent) -> None:
 
 
 class SummaryCard(tk.Frame):
-    """A small white box at the top: a title, a big value and a note."""
-
     def __init__(self, parent, title: str):
         super().__init__(parent, bg=theme.CARD, highlightthickness=1,
                          highlightbackground=theme.BORDER, padx=14, pady=6)
@@ -116,7 +94,7 @@ class BazarApp(tk.Tk):
     def __init__(self, manager: BazarManager | None = None):
         super().__init__()
         self.manager = manager or BazarManager()
-        self.product_labels = self.manager.product_labels()  # {label: product_id}
+        self.product_labels = self.manager.product_labels()
 
         self.title("BazarWatch BD - Food Price Tracker")
         self.fit_to_screen()
@@ -145,10 +123,7 @@ class BazarApp(tk.Tk):
         if self.manager.problems:
             messagebox.showwarning("Data problems", "\n".join(self.manager.problems))
 
-    # ---------- helpers ----------
-
     def fit_to_screen(self) -> None:
-        """Open the window at a good size, but never bigger than the screen."""
         factor = theme.screen_factor(self)
         width = min(int(WINDOW_WIDTH * factor), self.winfo_screenwidth() - 40)
         height = min(int(WINDOW_HEIGHT * factor), self.winfo_screenheight() - TASKBAR_ROOM)
@@ -156,21 +131,14 @@ class BazarApp(tk.Tk):
         self.minsize(int(900 * factor), int(560 * factor))
 
     def report_callback_exception(self, exc_type, exc_value, exc_traceback):
-        """Tkinter calls this if a button causes an error we did not expect.
-
-        We show a message instead of letting the error go unnoticed.
-        """
         messagebox.showerror("Unexpected error",
                              f"Something went wrong: {exc_value}\nThe app is still running.")
 
     def refresh_all(self) -> None:
-        """After every change we redraw all tabs and the summary cards."""
         self.refresh_summary()
         self.refresh_records()
         self.refresh_stats()
         self.refresh_basket()
-
-    # ================= Header and summary cards =================
 
     def build_header(self) -> None:
         header = tk.Frame(self, bg=theme.PRIMARY, padx=20, pady=8)
@@ -222,8 +190,6 @@ class BazarApp(tk.Tk):
                                   f"{status} (Tk {manager.basket['budget']:g})",
                                   theme.STATUS_COLOURS[status])
 
-    # ================= Tab 1: Add Price =================
-
     def build_add_tab(self) -> None:
         tab = self.add_tab
         tab.columnconfigure(1, weight=1)
@@ -269,7 +235,6 @@ class BazarApp(tk.Tk):
         self.clear_add_form()
 
     def build_result_panel(self, tab) -> None:
-        """The box on the right of the Add Price tab that shows the alert level."""
         panel = soft_panel(tab)
         panel.grid(row=0, column=1, sticky="nsew", padx=(36, 0))
 
@@ -334,7 +299,6 @@ class BazarApp(tk.Tk):
         self.refresh_all()
 
     def show_result(self, record) -> None:
-        """Show the alert level of a saved price, with the numbers behind it."""
         level, z, pct = self.manager.alert_for(record)
         product = self.manager.get_product(record.product_id)
         z_limit, pct_limit = product.spike_limits()
@@ -355,8 +319,6 @@ class BazarApp(tk.Tk):
             f"Price: Tk {record.price:.2f} per {product.unit}\n\n"
             f"Rule 1 - z-score: {z_text}\n"
             f"Rule 2 - above reference: {pct_text}"))
-
-    # ================= Tab 2: Records =================
 
     def build_records_tab(self) -> None:
         tab = self.records_tab
@@ -402,7 +364,7 @@ class BazarApp(tk.Tk):
         self.refresh_records()
 
     def refresh_records(self) -> None:
-        product_id = self.product_labels.get(self.filter_product.get())  # None = all
+        product_id = self.product_labels.get(self.filter_product.get())
         records = self.manager.search(self.search_entry.get(), product_id)
         alerts = self.manager.all_alerts()
 
@@ -447,8 +409,6 @@ class BazarApp(tk.Tk):
             messagebox.showerror("Could not delete", str(error))
             return
         self.refresh_all()
-
-    # ================= Tab 3: Statistics =================
 
     def build_stats_tab(self) -> None:
         tab = self.stats_tab
@@ -518,7 +478,7 @@ class BazarApp(tk.Tk):
             f"Official (TCB) price of {product.name} per {product.unit}.\n"
             "Leave it empty to remove the reference price.",
             initialvalue=current, parent=self)
-        if text is None:  # the user pressed Cancel
+        if text is None:
             return
         try:
             self.manager.set_reference_price(product_id, text)
@@ -535,8 +495,6 @@ class BazarApp(tk.Tk):
             messagebox.showerror("Could not save", str(error))
             return
         messagebox.showinfo("Report saved", f"The report was saved to:\n{path}")
-
-    # ================= Tab 4: My Basket =================
 
     def build_basket_tab(self) -> None:
         tab = self.basket_tab
@@ -579,11 +537,10 @@ class BazarApp(tk.Tk):
         self.build_budget_panel(tab)
 
     def build_budget_panel(self, tab) -> None:
-        """The box on the right of the basket tab: the plan and the budget."""
         panel = soft_panel(tab)
         panel.grid(row=1, column=1, sticky="nsew", padx=(20, 0), pady=(14, 0))
 
-        wrap = int(360 * theme.screen_factor(self))  # long lines go onto the next line
+        wrap = int(360 * theme.screen_factor(self))
         panel_title(panel, "Your plan")
         self.basket_summary = tk.Label(panel, text="", bg=theme.SOFT, fg=theme.TEXT,
                                        font=theme.NORMAL, justify="left", wraplength=wrap)
@@ -624,7 +581,7 @@ class BazarApp(tk.Tk):
             add_row(self.basket_table, index, values, row_id=product_id)
 
         clear_table(self.totals_table)
-        totals = sorted(plan["totals"].items(), key=lambda item: item[1])  # cheapest first
+        totals = sorted(plan["totals"].items(), key=lambda item: item[1])
         for index, (market, total) in enumerate(totals):
             add_row(self.totals_table, index, (market, money(total)))
 
@@ -678,8 +635,6 @@ class BazarApp(tk.Tk):
 
 
 class EditDialog(tk.Toplevel):
-    """A small window to change the market, date or price of one of your prices."""
-
     def __init__(self, app: BazarApp, record):
         super().__init__(app)
         self.app = app
@@ -716,14 +671,13 @@ class EditDialog(tk.Toplevel):
         ttk.Button(buttons, text="Save", style="Accent.TButton",
                    command=self.save).pack(side="right", padx=8)
 
-        self.grab_set()  # the main window waits until this one is closed
+        self.grab_set()
 
     def save(self) -> None:
         try:
             self.app.manager.update_price(self.record.record_id, self.market.get(),
                                           self.date.get(), self.price.get())
         except BazarError as error:
-            # Keep the window open so the user can fix the value
             messagebox.showerror("Could not save", str(error), parent=self)
             return
         self.destroy()

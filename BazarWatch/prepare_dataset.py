@@ -1,33 +1,15 @@
-"""Turn the raw WFP file into the small dataset our app uses.
-
-The raw file (data/raw/wfp_food_prices_bgd.csv) comes from the World Food
-Programme on the Humanitarian Data Exchange:
-https://data.humdata.org/dataset/wfp-food-prices-for-bangladesh
-
-It has about 34,000 rows for the whole country since 1998. We only keep:
-  - retail prices in Taka (BDT)
-  - four markets around Dhaka
-  - the products in our catalogue
-  - prices from 2024 onwards
-
-Run it once:  python prepare_dataset.py
-"""
-
 import csv
 import sys
 from pathlib import Path
 
-# Paths are next to this file, so the script works from any folder
 DATA_FOLDER = Path(__file__).parent / "data"
 RAW_FILE = DATA_FOLDER / "raw" / "wfp_food_prices_bgd.csv"
 OUTPUT_FILE = DATA_FOLDER / "dataset_prices.csv"
 
 START_DATE = "2024-01-01"
 
-# These must be the same market names as MARKETS in config.py
 KEEP_MARKETS = ("Dhaka Sadar", "Gazipur Sadar", "Narsingdi Sadar", "Manikganj Sadar")
 
-# WFP commodity name -> our product ID
 COMMODITY_TO_PRODUCT = {
     "Rice (coarse)": "RICE",
     "Wheat flour": "ATTA",
@@ -43,7 +25,6 @@ COMMODITY_TO_PRODUCT = {
 
 
 def is_wanted(row: dict) -> bool:
-    """Check if a raw row is one we want to keep."""
     if row["pricetype"] != "Retail" or row["currency"] != "BDT":
         return False
     if row["market"] not in KEEP_MARKETS:
@@ -63,7 +44,7 @@ def main() -> int:
         return 1
 
     kept = []
-    seen = set()  # (product, market, date) - WFP sometimes has the same price twice
+    seen = set()
     skipped = 0
     for row in raw_rows:
         if not is_wanted(row):
@@ -81,7 +62,7 @@ def main() -> int:
         seen.add(key)
         kept.append([product_id, row["market"], row["date"], price])
 
-    kept.sort(key=lambda item: (item[2], item[0], item[1]))  # by date, then product
+    kept.sort(key=lambda item: (item[2], item[0], item[1]))
 
     with open(OUTPUT_FILE, "w", encoding="utf-8", newline="") as file:
         writer = csv.writer(file)

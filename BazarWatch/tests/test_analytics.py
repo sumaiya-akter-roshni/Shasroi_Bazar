@@ -5,7 +5,6 @@ from models import PerishableProduct, PriceRecord, Product
 
 
 def make_records(product_id, prices, market="Dhaka Sadar"):
-    """One record per price, one month apart, starting in January 2026."""
     records = []
     for month, price in enumerate(prices, start=1):
         records.append(PriceRecord(f"T{month:03d}", product_id, market,
@@ -15,7 +14,6 @@ def make_records(product_id, prices, market="Dhaka Sadar"):
 
 class TestAlertLevel(unittest.TestCase):
     def setUp(self):
-        # Older prices: 40, 42, 38, 41, 39 -> mean 40, std about 1.58
         self.history = make_records("RICE", [40, 42, 38, 41, 39])
 
     def check(self, product, new_price):
@@ -35,7 +33,7 @@ class TestAlertLevel(unittest.TestCase):
         self.assertGreater(pct, 15)
 
     def test_watch_when_only_the_z_rule_fires(self):
-        rice = Product("RICE", "Rice", "kg", "Grains")  # no reference price
+        rice = Product("RICE", "Rice", "kg", "Grains")
         level, z, pct = self.check(rice, 60)
         self.assertEqual(level, "Watch")
         self.assertIsNone(pct)
@@ -53,7 +51,6 @@ class TestAlertLevel(unittest.TestCase):
         self.assertEqual(level, "Normal")
 
     def test_perishable_allows_a_bigger_jump(self):
-        # z is about 2.2 here: a Watch for rice, but fine for a perishable
         normal = Product("RICE", "Rice", "kg", "Grains")
         perishable = PerishableProduct("RICE", "Rice", "kg", "Grains")
         self.assertEqual(self.check(normal, 43.5)[0], "Watch")
@@ -97,11 +94,11 @@ class TestBasket(unittest.TestCase):
         plan = analytics.basket_plan({"RICE": 2, "OIL": 1}, self.records)
         self.assertEqual(plan["totals"], {"Dhaka Sadar": 310, "Gazipur Sadar": 315})
         self.assertEqual(plan["best_market"], "Dhaka Sadar")
-        self.assertEqual(plan["split_total"], 305)  # rice at Dhaka, oil at Gazipur
+        self.assertEqual(plan["split_total"], 305)
         self.assertEqual(plan["saving"], 5)
 
     def test_market_without_every_item_is_left_out(self):
-        self.records.pop()  # Gazipur has no oil now
+        self.records.pop()
         plan = analytics.basket_plan({"RICE": 2, "OIL": 1}, self.records)
         self.assertEqual(list(plan["totals"]), ["Dhaka Sadar"])
 

@@ -1,5 +1,3 @@
-"""Small helpers shared by the tests: a temporary data folder with test data."""
-
 import json
 import tempfile
 from pathlib import Path
@@ -25,7 +23,6 @@ D0007,OIL,Gazipur Sadar,2026-05-15,185
 
 
 def make_data_folder() -> tuple[tempfile.TemporaryDirectory, Path]:
-    """Create a temporary data folder. Call .cleanup() on the first value at the end."""
     temp = tempfile.TemporaryDirectory()
     folder = Path(temp.name)
     (folder / "products.json").write_text(json.dumps(TEST_PRODUCTS), encoding="utf-8")

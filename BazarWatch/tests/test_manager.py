@@ -109,7 +109,6 @@ class TestPrices(ManagerTestCase):
 
 class TestAnalysisAndBasket(ManagerTestCase):
     def test_reference_price_makes_a_spike(self):
-        # Without a reference price the best we can get is Watch
         self.manager.set_reference_price("RICE", "")
         record = self.manager.add_price("RICE", "Dhaka Sadar", "2026-06-15", "70")
         self.assertEqual(self.manager.alert_for(record)[0], "Watch")
@@ -118,7 +117,6 @@ class TestAnalysisAndBasket(ManagerTestCase):
         self.assertEqual(self.reload().products["RICE"].reference_price, 50)
 
     def test_alert_counts(self):
-        # RICE has a reference price of 50 in the test data, so 70 is a Spike
         self.manager.add_price("RICE", "Dhaka Sadar", "2026-06-15", "70")
         counts = self.manager.alert_counts()
         self.assertEqual(counts, {"Normal": 7, "Watch": 0, "Spike": 1})

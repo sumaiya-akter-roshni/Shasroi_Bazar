@@ -1,10 +1,3 @@
-"""Reading and writing the data files (JSON, CSV and TXT).
-
-Every function here handles its own file errors, so a missing or broken
-file never closes the app. Problems are returned as a list of messages
-and the GUI shows them to the user.
-"""
-
 import csv
 import json
 from datetime import date
@@ -14,10 +7,7 @@ import config
 from models import PriceRecord, product_from_dict
 
 
-# ---------- products.json ----------
-
 def load_products(path: Path) -> tuple[dict, list]:
-    """Return ({product_id: Product}, problems)."""
     problems = []
     products = {}
     try:
@@ -46,10 +36,7 @@ def save_products(path: Path, products: dict) -> None:
         json.dump(data, file, indent=2)
 
 
-# ---------- price CSV files ----------
-
 def check_row(row: list, known_products: set, seen_ids: set) -> str | None:
-    """Return why a CSV row is bad, or None if the row is fine."""
     if len(row) != len(config.CSV_HEADER):
         return f"expected {len(config.CSV_HEADER)} values but found {len(row)}"
 
@@ -75,28 +62,23 @@ def check_row(row: list, known_products: set, seen_ids: set) -> str | None:
 
 
 def load_prices(path: Path, source: str, known_products: set) -> tuple[list, list]:
-    """Read a price CSV file. Bad rows are skipped and reported.
-
-    Returns (list of PriceRecord, problems).
-    """
     records = []
     problems = []
-    seen_ids = set()  # a set makes "have we seen this ID?" fast and simple
+    seen_ids = set()
 
     try:
         with open(path, encoding="utf-8", newline="") as file:
             rows = list(csv.reader(file))
     except FileNotFoundError:
         if source == "mine":
-            # First run: start with an empty file
             save_prices(path, [])
         else:
             problems.append(f"{path.name} was not found, so only your own prices are used.")
         return records, problems
 
-    for line_number, row in enumerate(rows[1:], start=2):  # line 1 is the header
+    for line_number, row in enumerate(rows[1:], start=2):
         if not row:
-            continue  # ignore empty lines
+            continue
         reason = check_row(row, known_products, seen_ids)
         if reason:
             problems.append(f"{path.name} line {line_number}: {reason}")
@@ -116,14 +98,11 @@ def save_prices(path: Path, records: list) -> None:
             writer.writerow(record.to_row())
 
 
-# ---------- basket.json ----------
-
 def empty_basket() -> dict:
     return {"budget": 0.0, "items": {}}
 
 
 def load_basket(path: Path) -> tuple[dict, list]:
-    """Return (basket, problems). The basket is {"budget": ..., "items": {id: qty}}."""
     try:
         with open(path, encoding="utf-8") as file:
             data = json.load(file)
@@ -143,10 +122,7 @@ def save_basket(path: Path, basket: dict) -> None:
         json.dump(basket, file, indent=2)
 
 
-# ---------- report (.txt) ----------
-
 def save_report(text: str, folder: Path) -> Path:
-    """Save the report as reports/report_YYYY-MM-DD.txt and return the path."""
     folder.mkdir(exist_ok=True)
     path = folder / f"report_{date.today().isoformat()}.txt"
     with open(path, "w", encoding="utf-8") as file:

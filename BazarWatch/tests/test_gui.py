@@ -1,5 +1,3 @@
-"""A few checks that drive the real window. Skipped when there is no screen."""
-
 import tkinter as tk
 import unittest
 from unittest import mock
@@ -21,7 +19,6 @@ class TestWindow(unittest.TestCase):
         from gui import BazarApp
 
         self.temp, folder = make_data_folder()
-        # Message boxes would wait for a click, so we replace them in the tests
         patcher = mock.patch("gui.messagebox")
         self.messagebox = patcher.start()
         self.addCleanup(patcher.stop)

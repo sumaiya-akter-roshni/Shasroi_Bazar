@@ -1,10 +1,3 @@
-"""BazarManager: the middle part of the app.
-
-The GUI never touches files or does calculations itself. It asks the
-manager, and the manager uses validators.py, analytics.py and
-file_handler.py to do the work.
-"""
-
 from datetime import date
 from pathlib import Path
 
@@ -30,20 +23,17 @@ class BazarManager:
                  reports_folder: Path = config.REPORTS_FOLDER):
         self.folder = Path(data_folder)
         self.reports_folder = Path(reports_folder)
-        self.products = {}         # {product_id: Product}
-        self.dataset_records = []  # real prices from WFP (read only)
-        self.my_records = []       # prices added by the user
+        self.products = {}
+        self.dataset_records = []
+        self.my_records = []
         self.basket = file_handler.empty_basket()
-        self.problems = []         # file problems found while loading
+        self.problems = []
         self.load_all()
-
-    # ---------- loading and saving ----------
 
     def path(self, file_name: str) -> Path:
         return self.folder / file_name
 
     def load_all(self) -> None:
-        """Read every data file. Problems are kept in self.problems."""
         self.problems = []
         try:
             self.folder.mkdir(exist_ok=True)
@@ -83,15 +73,12 @@ class BazarManager:
         except OSError as error:
             raise BazarError(f"Could not save the basket: {error}") from error
 
-    # ---------- products ----------
-
     def get_product(self, product_id: str):
         if product_id not in self.products:
             raise RecordNotFoundError(f"There is no product '{product_id}'.")
         return self.products[product_id]
 
     def product_labels(self) -> dict:
-        """{label shown in a dropdown: product_id}, sorted by name."""
         products = sorted(self.products.values(), key=lambda p: p.name)
         return {product.label(): product.product_id for product in products}
 
@@ -104,8 +91,6 @@ class BazarManager:
         product.reference_price = validate_reference_price(text)
         self.save_products()
 
-    # ---------- price records ----------
-
     def all_records(self) -> list:
         return self.dataset_records + self.my_records
 
@@ -114,7 +99,6 @@ class BazarManager:
         return f"M{max(numbers, default=0) + 1:04d}"
 
     def check_duplicate(self, key: tuple, skip_id: str | None = None) -> None:
-        """Stop the user adding the same product, market and date twice."""
         used_keys = {r.key() for r in self.my_records if r.record_id != skip_id}
         if key in used_keys:
             raise DuplicateRecordError(
@@ -143,7 +127,6 @@ class BazarManager:
         if not record.can_change():
             raise BazarError("Prices from the dataset cannot be changed.")
 
-        # Check everything first, so a wrong value changes nothing
         market = validate_choice(market, config.MARKETS, "market")
         day = validate_date(day)
         price = validate_price(price_text)
@@ -163,7 +146,6 @@ class BazarManager:
         self.save_my_prices()
 
     def search(self, text: str = "", product_id: str | None = None) -> list:
-        """Find records by product, market, date or ID. Empty text means all."""
         text = text.strip().lower()
         results = []
         for record in self.all_records():
@@ -173,10 +155,8 @@ class BazarManager:
                      f"{self.product_name(record.product_id)} {record.market} {record.date}")
             if text in words.lower():
                 results.append(record)
-        results.sort(key=lambda r: r.date, reverse=True)  # newest first
+        results.sort(key=lambda r: r.date, reverse=True)
         return results
-
-    # ---------- analysis ----------
 
     def alert_for(self, record: PriceRecord) -> tuple:
         product = self.get_product(record.product_id)
@@ -184,9 +164,6 @@ class BazarManager:
         return analytics.alert_level(record, product, same_product)
 
     def all_alerts(self) -> dict:
-        """{record_id: (level, z, pct)} for every record."""
-        # Group the records by product first, so each alert only looks
-        # at the prices of its own product.
         by_product = {}
         for record in self.all_records():
             by_product.setdefault(record.product_id, []).append(record)
@@ -199,7 +176,6 @@ class BazarManager:
         return alerts
 
     def alert_counts(self) -> dict:
-        """How many recent prices are Normal, Watch and Spike: {level: count}."""
         alerts = self.all_alerts()
         counts = dict.fromkeys(config.ALERT_LEVELS, 0)
         for record in self.recent_records():
@@ -211,7 +187,6 @@ class BazarManager:
         return analytics.recent_records(self.all_records())
 
     def statistics(self) -> list:
-        """One row of numbers for every product."""
         recent = self.recent_records()
         rows = []
         for product in sorted(self.products.values(), key=lambda p: p.name):
@@ -221,8 +196,6 @@ class BazarManager:
             stats["cheapest"] = analytics.cheapest_market(product.product_id, recent)
             rows.append(stats)
         return rows
-
-    # ---------- basket ----------
 
     def set_basket_item(self, product_id: str, quantity_text) -> None:
         self.get_product(product_id)
@@ -245,8 +218,6 @@ class BazarManager:
         plan["status"] = analytics.budget_status(plan["split_total"], budget)
         plan["budget_percent"] = analytics.budget_percent(plan["split_total"], budget)
         return plan
-
-    # ---------- report ----------
 
     def build_report(self) -> str:
         lines = []

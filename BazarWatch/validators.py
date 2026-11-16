@@ -1,28 +1,25 @@
-"""Our own error types and the functions that check user input."""
-
 from datetime import date
 
 import config
 
 
 class BazarError(Exception):
-    """Parent of all our errors. The GUI catches this one and shows the message."""
+    pass
 
 
 class ValidationError(BazarError):
-    """The user typed something wrong (empty, not a number, out of range)."""
+    pass
 
 
 class DuplicateRecordError(BazarError):
-    """The same price was already added."""
+    pass
 
 
 class RecordNotFoundError(BazarError):
-    """We could not find the record or product that was asked for."""
+    pass
 
 
 def to_number(text, field_name: str) -> float:
-    """Turn the text from an entry box into a number."""
     if text is None or str(text).strip() == "":
         raise ValidationError(f"{field_name} is required.")
     try:
@@ -59,14 +56,12 @@ def validate_budget(text) -> float:
 
 
 def validate_reference_price(text) -> float | None:
-    """An empty box means 'no reference price', which is allowed."""
     if text is None or str(text).strip() == "":
         return None
     return validate_price(text)
 
 
 def validate_date(text) -> str:
-    """The date must look like 2026-11-07 and must not be in the future."""
     text = str(text).strip()
     if text == "":
         raise ValidationError("Date is required.")
@@ -80,7 +75,6 @@ def validate_date(text) -> str:
 
 
 def validate_choice(value: str, options, field_name: str) -> str:
-    """The value must be one of the allowed options (used for markets)."""
     if value not in options:
         raise ValidationError(f"Please choose a valid {field_name}.")
     return value
